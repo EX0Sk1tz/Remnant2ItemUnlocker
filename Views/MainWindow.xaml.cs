@@ -1,0 +1,86 @@
+﻿using System.Diagnostics;
+using System.Windows;
+using Remnant2UnlockerApp.Models;
+using Remnant2UnlockerApp.ViewModels;
+
+namespace Remnant2UnlockerApp.Views;
+
+public partial class MainWindow : Window
+{
+    private readonly MainViewModel _viewModel = new();
+
+    public MainWindow()
+    {
+        InitializeComponent();
+        DataContext = _viewModel;
+
+        Loaded += async (_, _) => await _viewModel.LoadAsync();
+    }
+
+    private RemnantItem? GetItemFromSender(object sender)
+    {
+        if (sender is not FrameworkElement element)
+            return null;
+
+        return element.DataContext as RemnantItem;
+    }
+
+    private async void SpawnItem_Click(object sender, RoutedEventArgs e)
+    {
+        var item = GetItemFromSender(sender);
+
+        if (item == null)
+        {
+            _viewModel.StatusText = "Spawn failed: item context missing";
+            return;
+        }
+
+        await _viewModel.SpawnItemAsync(item);
+    }
+
+    private async void ForceConsoleSpawnItem_Click(object sender, RoutedEventArgs e)
+    {
+        var item = GetItemFromSender(sender);
+
+        if (item == null)
+        {
+            _viewModel.StatusText = "Force spawn failed: item context missing";
+            return;
+        }
+
+        await _viewModel.ForceConsoleSpawnItemAsync(item);
+    }
+
+    private void CopyCommand_Click(object sender, RoutedEventArgs e)
+    {
+        var item = GetItemFromSender(sender);
+
+        if (item == null)
+        {
+            _viewModel.StatusText = "Copy failed: item context missing";
+            return;
+        }
+
+        _viewModel.CopySummonCommand(item);
+    }
+
+    private void OpenWiki_Click(object sender, RoutedEventArgs e)
+    {
+        var item = GetItemFromSender(sender);
+
+        if (item == null)
+        {
+            _viewModel.StatusText = "Wiki failed: item context missing";
+            return;
+        }
+
+        var wikiName = Uri.EscapeDataString(item.Name.Replace(" ", "+"));
+        var url = $"https://remnant2.wiki.fextralife.com/{wikiName}";
+
+        Process.Start(new ProcessStartInfo
+        {
+            FileName = url,
+            UseShellExecute = true
+        });
+    }
+}
